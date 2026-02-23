@@ -138,10 +138,10 @@ impl EmailBook {
         let stdin = io::stdin();
         let filenames: Vec<String> = stdin.lock().lines().collect::<Result<_, _>>()?;
         for filename in &filenames {
-            if !filename.is_empty() {
-                if let Err(e) = self.parse_file(filename, fields) {
-                    eprintln!("Warning: could not parse {filename}: {e}");
-                }
+            if !filename.is_empty()
+                && let Err(e) = self.parse_file(filename, fields)
+            {
+                eprintln!("Warning: could not parse {filename}: {e}");
             }
         }
         Ok(())
@@ -506,22 +506,25 @@ pub fn sanitize_mailbox(line: &str) -> String {
     }
 
     // Remove display name if it duplicates the email address
-    if quoted_end > 0 && email_end > 0 && quoted_start <= quoted_end && email_start < email_end {
-        if let (Ok(display_name), Ok(email_addr)) = (
+    if quoted_end > 0
+        && email_end > 0
+        && quoted_start <= quoted_end
+        && email_start < email_end
+        && let (Ok(display_name), Ok(email_addr)) = (
             std::str::from_utf8(&out[quoted_start..quoted_end]),
             std::str::from_utf8(&out[email_start + 1..email_end]),
-        ) {
-            if display_name == email_addr {
-                let trimmed = &out[email_start..];
-                return String::from_utf8_lossy(trimmed).to_string();
-            }
-            // Also check if display name includes the angle brackets
-            if let Ok(email_with_brackets) = std::str::from_utf8(&out[email_start..email_end + 1]) {
-                if display_name == email_with_brackets {
-                    let trimmed = &out[email_start..];
-                    return String::from_utf8_lossy(trimmed).to_string();
-                }
-            }
+        )
+    {
+        if display_name == email_addr {
+            let trimmed = &out[email_start..];
+            return String::from_utf8_lossy(trimmed).to_string();
+        }
+        // Also check if display name includes the angle brackets
+        if let Ok(email_with_brackets) = std::str::from_utf8(&out[email_start..email_end + 1])
+            && display_name == email_with_brackets
+        {
+            let trimmed = &out[email_start..];
+            return String::from_utf8_lossy(trimmed).to_string();
         }
     }
 
