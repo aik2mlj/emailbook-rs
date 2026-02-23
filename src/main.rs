@@ -1,5 +1,6 @@
 mod emailbook;
 
+use std::io::Write;
 use std::path::PathBuf;
 use std::process;
 
@@ -66,6 +67,17 @@ enum Commands {
         /// Header source: from, to, cc, bcc, all (default: all)
         source: Option<ParseSource>,
     },
+    /// Remove entries from the address book interactively
+    Remove {
+        /// Search only keys/aliases
+        #[arg(short, long)]
+        key: bool,
+        /// Search only values/e-mail addresses
+        #[arg(short, long)]
+        value: bool,
+        /// Query string
+        query: String,
+    },
     /// Generate shell completion scripts
     Completion {
         /// Shell to generate completions for
@@ -88,6 +100,13 @@ struct Cli {
 
     #[command(subcommand)]
     command: Option<Commands>,
+}
+
+fn display_value(line: &str) -> &str {
+    match line.find(':') {
+        Some(pos) if pos + 2 <= line.len() => &line[pos + 2..],
+        _ => line,
+    }
 }
 
 fn main() {
@@ -132,12 +151,15 @@ fn main() {
             }
         }
         Some(Commands::Search { key, value, query }) => {
-            if key {
-                book.search_by_alias(&query);
+            let indices = if key {
+                book.search_by_alias(&query)
             } else if value {
-                book.search_by_value(&query);
+                book.search_by_value(&query)
             } else {
-                book.search_all(&query);
+                book.search_all(&query)
+            };
+            for idx in indices {
+                println!("{}", display_value(&book.lines[idx]));
             }
         }
         Some(Commands::Parse { source }) => {
@@ -151,6 +173,36 @@ fn main() {
             let fields = source.unwrap_or(ParseSource::All).to_fields();
             if let Err(e) = book.parse_files(&fields) {
                 eprintln!("Error parsing files: {e}");
+                process::exit(1);
+            }
+        }
+        Some(Commands::Remove { key, value, query }) => {
+            let indices = if key {
+                book.search_by_alias(&query)
+            } else if value {
+                book.search_by_value(&query)
+            } else {
+                book.search_all(&query)
+            };
+
+            let mut to_remove = Vec::new();
+            for idx in indices {
+                let line = &book.lines[idx];
+                eprint!("{line}\n  Remove? [y/N] ");
+                let _ = std::io::stderr().flush();
+                let mut input = String::new();
+                if std::io::stdin().read_line(&mut input).is_ok()
+                    && input.trim().eq_ignore_ascii_case("y")
+                {
+                    println!("- {line}");
+                    to_remove.push(idx);
+                }
+            }
+
+            if !to_remove.is_empty()
+                && let Err(e) = book.remove_lines(&to_remove)
+            {
+                eprintln!("Error writing file: {e}");
                 process::exit(1);
             }
         }

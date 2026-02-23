@@ -76,43 +76,62 @@ impl EmailBook {
         true
     }
 
-    /// Searches by alias (key) and prints matching values.
-    pub fn search_by_alias(&self, query: &str) {
-        let query_lower = query.to_lowercase();
-        for line in &self.lines {
-            if let Some(value) = check_alias(&query_lower, line) {
-                println!("{value}");
-            }
-        }
+    /// Returns indices of lines whose key matches the query.
+    pub fn search_by_alias(&self, query: &str) -> Vec<usize> {
+        let q = query.to_lowercase();
+        self.lines
+            .iter()
+            .enumerate()
+            .filter(|(_, line)| check_alias(&q, line).is_some())
+            .map(|(i, _)| i)
+            .collect()
     }
 
-    /// Searches by value and prints matching values.
-    pub fn search_by_value(&self, query: &str) {
-        let query_lower = query.to_lowercase();
-        for line in &self.lines {
-            if let Some(value) = check_value(&query_lower, line) {
-                println!("{value}");
-            }
-        }
+    /// Returns indices of lines whose value matches the query.
+    pub fn search_by_value(&self, query: &str) -> Vec<usize> {
+        let q = query.to_lowercase();
+        self.lines
+            .iter()
+            .enumerate()
+            .filter(|(_, line)| check_value(&q, line).is_some())
+            .map(|(i, _)| i)
+            .collect()
     }
 
-    /// Searches by value, excluding results that also match by alias.
-    pub fn search_by_value_only(&self, query: &str) {
-        let query_lower = query.to_lowercase();
-        for line in &self.lines {
-            if check_alias(&query_lower, line).is_some() {
-                continue;
-            }
-            if let Some(value) = check_value(&query_lower, line) {
-                println!("{value}");
+    /// Returns indices of all matching lines (alias matches first, then value-only), without duplicates.
+    pub fn search_all(&self, query: &str) -> Vec<usize> {
+        let q = query.to_lowercase();
+        let mut seen = std::collections::HashSet::new();
+        let mut result = Vec::new();
+        for (i, line) in self.lines.iter().enumerate() {
+            if check_alias(&q, line).is_some() {
+                seen.insert(i);
+                result.push(i);
             }
         }
+        for (i, line) in self.lines.iter().enumerate() {
+            if !seen.contains(&i) && check_value(&q, line).is_some() {
+                result.push(i);
+            }
+        }
+        result
     }
 
-    /// Searches by both alias and value (alias matches first, then value-only).
-    pub fn search_all(&self, query: &str) {
-        self.search_by_alias(query);
-        self.search_by_value_only(query);
+    /// Removes lines at the given indices and rewrites the file.
+    pub fn remove_lines(&mut self, indices: &[usize]) -> io::Result<()> {
+        let to_remove: std::collections::HashSet<usize> = indices.iter().copied().collect();
+        let mut i = 0;
+        self.lines.retain(|_| {
+            let keep = !to_remove.contains(&i);
+            i += 1;
+            keep
+        });
+        let content = if self.lines.is_empty() {
+            String::new()
+        } else {
+            self.lines.join("\n") + "\n"
+        };
+        fs::write(&self.path, content)
     }
 
     /// Parses email headers from stdin and adds found addresses.
