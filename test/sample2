@@ -1,0 +1,8 @@
+Subject: Test e-mail 2
+From: John Doe <john.doe@example.com>
+To: "Erika Mustermann"<e.mustermann@example.com>,
+ =?ISO-8859-1?Q?Max M=FCller?= <max.m@example.com>,
+ <mario.r@example.com>
+Cc: zhang.san@example.com, Maria Rossi <maria.r@example.com>
+
+Content

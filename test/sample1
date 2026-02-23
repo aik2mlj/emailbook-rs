@@ -1,0 +1,10 @@
+Subject: Test e-mail 1
+From: John Doe <john.doe@example.com>
+To: Erika Mustermann
+ <e.mustermann@example.com>,
+ <max.m@example.com>,
+ mario.r@example.com
+Cc: =?UTF-8?B?5byg5LiJ?= <zhang.san@example.com>,
+ Maria Rossi <maria.r@example.com>
+
+Content
