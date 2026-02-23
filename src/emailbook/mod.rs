@@ -547,7 +547,8 @@ pub fn sanitize_mailbox(line: &str) -> String {
         }
     }
 
-    let result = String::from_utf8(out).unwrap_or_else(|e| String::from_utf8_lossy(e.as_bytes()).to_string());
+    let result = String::from_utf8(out)
+        .unwrap_or_else(|e| String::from_utf8_lossy(e.as_bytes()).to_string());
     strip_unnecessary_display_quotes(&result).unwrap_or(result)
 }
 
@@ -582,7 +583,10 @@ fn strip_unnecessary_display_quotes(s: &str) -> Option<String> {
     }
     // RFC 5322 specials — any of these in the display name requires quoting
     const SPECIALS: &[u8] = b"()<>[]:;@\\,.\"";
-    if display.bytes().any(|b| SPECIALS.contains(&b) || b < 0x20 || b > 0x7e) {
+    if display
+        .bytes()
+        .any(|b| SPECIALS.contains(&b) || !(0x20..=0x7e).contains(&b))
+    {
         return None;
     }
     Some(format!("{display}{after}"))
