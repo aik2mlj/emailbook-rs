@@ -4,7 +4,7 @@ A minimalistic email address book with [aerc](https://aerc-mail.org/) integratio
 
 This is a Rust rewrite of [emailbook-hare](https://git.sr.ht/~maxgyver83/emailbook-hare).
 
-## Installation
+## Installation <a href="https://repology.org/project/emailbook-rs/versions"><img src="https://repology.org/badge/vertical-allrepos/emailbook-rs.svg" alt="Packaging status" align="right"></a>
 
 Download the binary for your platform from the
 [releases page](https://github.com/aik2mlj/emailbook-rs/releases), extract it,
