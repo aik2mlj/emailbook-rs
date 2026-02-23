@@ -1,20 +1,14 @@
-# emailbook (Rust)
+# emailbook-rs
 
-A minimalistic address book for e-mails only.
+A minimalistic email address book with [aerc](https://aerc-mail.org/) integration.
 
 This is a Rust rewrite of [emailbook-hare](https://git.sr.ht/~maxgyver83/emailbook-hare).
 
 ## Installation
 
-Install [Rust](https://www.rust-lang.org/tools/install) if necessary.
-
-```sh
-cargo build --release
-```
-
-The binary will be at `target/release/emailbook`.
-
-Copy it to a directory in your `PATH` (e.g. `$HOME/.local/bin/` or `/usr/local/bin/`).
+Download the binary for your platform from the
+[releases page](https://github.com/aik2mlj/emailbook-rs/releases), extract it,
+and place it somewhere in your `PATH`.
 
 ## Usage
 
