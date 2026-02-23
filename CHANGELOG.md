@@ -7,12 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-02-23
+
 ### Changed
 
 - Unnecessary double quotes are now stripped from display names when parsing email headers.
   Quotes are removed when the display name contains no RFC 5322 special characters
   (e.g. `"John Doe" <j@x.com>` → `John Doe <j@x.com>`). Quotes are preserved when required
   (e.g. `"Doe, John" <j@x.com>`).
+- Bumped `directories` to 6
 
 ## [0.3.0] - 2026-02-22
 
@@ -21,7 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Subcommand-based CLI: `add`, `search`, `remove`, `parse`, `parse-files`, `completion`
 - `remove` subcommand: interactively delete entries with a per-match `y/[N]` prompt
 - `completion` subcommand: generate shell completion scripts (bash, zsh, fish, elvish, powershell)
-- Default file path uses the platform data directory (`emailbook.txt` under `$XDG_DATA_HOME` on Linux, `~/Library/Application Support` on macOS, `%APPDATA%` on Windows), via the `directories` crate
+- Default file path uses the platform data directory (`emailbook.txt` under `$XDG_DATA_HOME` on Linux, `~/Library/Application Support` on macOS, `%APPDATA%` on Windows)
+- `clap_complete` dependency for shell completion generation
+- `directories` dependency for platform data directory resolution
 
 ### Changed
 
@@ -46,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `--from`/`--to`/`--cc`/`--bcc` flags were silently ignored due to a variable shadowing bug in the original
 - File read bug in `parse_file`: read actual bytes rather than the full buffer size
 
-[Unreleased]: https://github.com/aik2mlj/emailbook-rs/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/aik2mlj/emailbook-rs/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/aik2mlj/emailbook-rs/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/aik2mlj/emailbook-rs/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/aik2mlj/emailbook-rs/releases/tag/v0.2.0
