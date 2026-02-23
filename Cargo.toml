@@ -9,7 +9,7 @@ license = "MIT"
 base64 = "0.22"
 clap = { version = "4.5.60", default-features = false, features = ["derive", "std", "help", "usage"] }
 clap_complete = "4"
-directories = "5"
+directories = "6"
 encoding_rs = "0.8"
 
 [profile.release]
