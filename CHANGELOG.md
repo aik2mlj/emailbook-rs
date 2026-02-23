@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Unnecessary double quotes are now stripped from display names when parsing email headers.
+  Quotes are removed when the display name contains no RFC 5322 special characters
+  (e.g. `"John Doe" <j@x.com>` → `John Doe <j@x.com>`). Quotes are preserved when required
+  (e.g. `"Doe, John" <j@x.com>`).
+
 ## [0.3.0] - 2026-02-22
 
 ### Added

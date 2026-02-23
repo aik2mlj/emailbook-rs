@@ -313,14 +313,14 @@ fn test_sanitize_single_quotes() {
 
 #[test]
 fn test_sanitize_single_inside_double_quotes() {
-    assert_eq!(sanitize_mailbox("\"'john'\" <xxx>"), "\"john\" <xxx>");
+    assert_eq!(sanitize_mailbox("\"'john'\" <xxx>"), "john <xxx>");
 }
 
 #[test]
 fn test_sanitize_apostrophe_preserved() {
     assert_eq!(
         sanitize_mailbox("\"joe's garage\" <xxx>"),
-        "\"joe's garage\" <xxx>"
+        "joe's garage <xxx>"
     );
 }
 
@@ -332,6 +332,38 @@ fn test_sanitize_redundant_display_name() {
 #[test]
 fn test_sanitize_redundant_display_with_brackets() {
     assert_eq!(sanitize_mailbox("\"<xxx>\" <xxx>"), "<xxx>");
+}
+
+#[test]
+fn test_sanitize_strips_unnecessary_quotes() {
+    assert_eq!(
+        sanitize_mailbox("\"John Doe\" <john@example.com>"),
+        "John Doe <john@example.com>"
+    );
+}
+
+#[test]
+fn test_sanitize_keeps_quotes_comma() {
+    assert_eq!(
+        sanitize_mailbox("\"Doe, John\" <john@example.com>"),
+        "\"Doe, John\" <john@example.com>"
+    );
+}
+
+#[test]
+fn test_sanitize_keeps_quotes_period() {
+    assert_eq!(
+        sanitize_mailbox("\"J. Smith\" <j@example.com>"),
+        "\"J. Smith\" <j@example.com>"
+    );
+}
+
+#[test]
+fn test_sanitize_keeps_quotes_non_ascii() {
+    assert_eq!(
+        sanitize_mailbox("\"Ján Novák\" <j@example.com>"),
+        "\"Ján Novák\" <j@example.com>"
+    );
 }
 
 // ── toggle_quotes ───────────────────────────────────────────────

@@ -547,7 +547,45 @@ pub fn sanitize_mailbox(line: &str) -> String {
         }
     }
 
-    String::from_utf8(out).unwrap_or_else(|e| String::from_utf8_lossy(e.as_bytes()).to_string())
+    let result = String::from_utf8(out).unwrap_or_else(|e| String::from_utf8_lossy(e.as_bytes()).to_string());
+    strip_unnecessary_display_quotes(&result).unwrap_or(result)
+}
+
+/// Strips double quotes from the display name when they are unnecessary,
+/// i.e. the display name contains no RFC 5322 special characters and is pure ASCII.
+fn strip_unnecessary_display_quotes(s: &str) -> Option<String> {
+    if !s.starts_with('"') {
+        return None;
+    }
+    // Find closing quote, honouring backslash escapes
+    let bytes = s.as_bytes();
+    let mut i = 1;
+    while i < bytes.len() {
+        match bytes[i] {
+            b'\\' => i += 2,
+            b'"' => break,
+            _ => i += 1,
+        }
+    }
+    if i >= bytes.len() {
+        return None; // no closing quote
+    }
+    let display = &s[1..i];
+    let after = &s[i + 1..]; // everything after the closing quote
+
+    // Must be followed by " <..." to be a mailbox display name
+    if !after.starts_with(' ') || !after[1..].starts_with('<') {
+        return None;
+    }
+    if display.is_empty() {
+        return None;
+    }
+    // RFC 5322 specials — any of these in the display name requires quoting
+    const SPECIALS: &[u8] = b"()<>[]:;@\\,.\"";
+    if display.bytes().any(|b| SPECIALS.contains(&b) || b < 0x20 || b > 0x7e) {
+        return None;
+    }
+    Some(format!("{display}{after}"))
 }
 
 /// Splits a string at commas that are not inside double quotes.

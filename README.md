@@ -158,6 +158,20 @@ A mailbox is an e-mail address plus optionally a display name.
 - **No memory leaks**: Rust's ownership system prevents the memory leaks present in the
   original (e.g., allocated strings not freed in `match_mailbox` and `decode_encoded_words`).
 
+### Divergences
+
+- **Subcommand-based CLI**: The Hare version uses flags (`--add`, `--search`, `--parse`,
+  etc.). This version uses subcommands (`add`, `search`, `parse`, …) and adds `remove` and
+  `completion`.
+- **Default file path**: The Hare version always requires a file argument. This version
+  defaults to `emailbook.txt` in the platform data directory and accepts an optional
+  `-f`/`--file` override.
+- **Unnecessary quotes stripped from display names**: When parsing email headers, the Hare
+  version preserves double quotes around display names verbatim (e.g.
+  `"John Doe" <john@example.com>`). This version strips quotes that serve no purpose — i.e.
+  when the display name contains no RFC 5322 special characters — normalising to
+  `John Doe <john@example.com>`. Quotes are kept when required (e.g. `"Doe, John"`).
+
 ## Running tests
 
 ```sh
