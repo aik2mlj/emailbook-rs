@@ -1,16 +1,12 @@
 use std::fs::{self, OpenOptions};
 use std::io::{self, BufRead, Read, Write};
 use std::path::PathBuf;
-use std::sync::OnceLock;
 
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use encoding_rs::Encoding;
-use regex::Regex;
 
 const MAX_HEADER_SIZE: usize = 20_000;
-
-static RE_ENCODED_WORD: OnceLock<Regex> = OnceLock::new();
 
 /// Represents an in-memory address book backed by a file.
 pub struct EmailBook {
@@ -349,44 +345,89 @@ pub fn decode_q_encoded_string_charset(s: &str, charset: &str) -> String {
     }
 }
 
+/// Finds the next MIME encoded-word `=?charset?encoding?text?=` in `s` starting
+/// at byte offset `start`. Returns `(match_start, charset, encoding_char, text, match_end)`.
+fn find_encoded_word(s: &str) -> Option<(usize, &str, u8, &str, usize)> {
+    let bytes = s.as_bytes();
+    let mut i = 0;
+    while i + 2 < bytes.len() {
+        // Find "=?"
+        if bytes[i] != b'=' || bytes[i + 1] != b'?' {
+            i += 1;
+            continue;
+        }
+        let token_start = i;
+        i += 2;
+        // charset: alnum or '-'
+        let charset_start = i;
+        while i < bytes.len() && (bytes[i].is_ascii_alphanumeric() || bytes[i] == b'-') {
+            i += 1;
+        }
+        if i >= bytes.len() || bytes[i] != b'?' || charset_start == i {
+            continue;
+        }
+        let charset = &s[charset_start..i];
+        i += 1; // skip '?'
+        // encoding: b, B, q, Q
+        if i >= bytes.len() || !matches!(bytes[i], b'b' | b'B' | b'q' | b'Q') {
+            continue;
+        }
+        let enc_byte = bytes[i].to_ascii_lowercase();
+        i += 1;
+        if i >= bytes.len() || bytes[i] != b'?' {
+            continue;
+        }
+        i += 1; // skip '?'
+        // text: anything except '?'
+        let text_start = i;
+        while i < bytes.len() && bytes[i] != b'?' {
+            i += 1;
+        }
+        if i + 1 >= bytes.len() || bytes[i] != b'?' || bytes[i + 1] != b'=' {
+            continue;
+        }
+        let text = &s[text_start..i];
+        i += 2; // skip "?="
+        return Some((token_start, charset, enc_byte, text, i));
+    }
+    None
+}
+
 /// Decodes MIME encoded-word tokens (`=?charset?encoding?text?=`) in a string.
 pub fn decode_encoded_words(line: &str) -> String {
-    let re = RE_ENCODED_WORD
-        .get_or_init(|| Regex::new(r"=\?([A-Za-z0-9-]+)\?([bBqQ])\?([^?]+)\?=").unwrap());
+    if !line.contains("=?") {
+        return line.to_string();
+    }
+
     let mut result = line.to_string();
 
-    // Loop because there may be multiple encoded words
-    while result.contains("=?") {
-        let Some(caps) = re.captures(&result) else {
+    loop {
+        if !result.contains("=?") {
+            break;
+        }
+        let Some((start, charset, enc_byte, text, end)) = find_encoded_word(&result) else {
             break;
         };
 
-        let full_match = caps.get(0).unwrap().as_str().to_string();
-        let charset = caps[1].to_lowercase();
-        let encoding = caps[2].to_lowercase();
-        let encoded_text = &caps[3];
-
-        let decoded = match (charset.as_str(), encoding.as_str()) {
-            (_, "b") => {
-                // Base64 decoding
-                match BASE64.decode(encoded_text) {
-                    Ok(bytes) => {
-                        if let Some(enc) = Encoding::for_label(charset.as_bytes()) {
-                            let (s, _, _) = enc.decode(&bytes);
-                            s.into_owned()
-                        } else {
-                            String::from_utf8(bytes).unwrap_or_else(|_| full_match.clone())
-                        }
+        let charset_lower = charset.to_lowercase();
+        let decoded = match enc_byte {
+            b'b' => match BASE64.decode(text) {
+                Ok(bytes) => {
+                    if let Some(enc) = Encoding::for_label(charset_lower.as_bytes()) {
+                        let (s, _, _) = enc.decode(&bytes);
+                        s.into_owned()
+                    } else {
+                        String::from_utf8(bytes).unwrap_or_else(|_| result[start..end].to_string())
                     }
-                    Err(_) => break,
                 }
-            }
-            ("utf-8", "q") => decode_q_encoded_string(encoded_text),
-            (cs, "q") => decode_q_encoded_string_charset(encoded_text, cs),
+                Err(_) => break,
+            },
+            b'q' if charset_lower == "utf-8" => decode_q_encoded_string(text),
+            b'q' => decode_q_encoded_string_charset(text, &charset_lower),
             _ => break,
         };
 
-        result = result.replace(&full_match, &decoded);
+        result = format!("{}{}{}", &result[..start], decoded, &result[end..]);
     }
 
     result
