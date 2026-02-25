@@ -114,6 +114,15 @@ Add this line to `~/.config/aerc/binds.conf`, `[view]` section:
 aa = :pipe -m emailbook parse<Enter>
 ```
 
+Additional ones if needed:
+
+```conf
+af = :pipe -m emailbook parse from<Enter>
+at = :pipe -m emailbook parse to<Enter>
+ac = :pipe -m emailbook parse cc<Enter>
+ab = :pipe -m emailbook parse bcc<Enter>
+```
+
 ## How a mailbox looks like
 
 A mailbox is an e-mail address plus optionally a display name.
