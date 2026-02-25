@@ -38,6 +38,14 @@ Options:
   -f, --file <FILE>  Address book file [default: <data_dir>/emailbook.txt]
 ```
 
+### Tips
+
+- You may want to alias `emailbook` to `eb` for brevity, and specify the `-f` flag to use a custom location (e.g., your cloud-synchronized folder).
+
+```sh
+alias eb='emailbook -f /path/to/sync-folder/emailbook.txt'
+```
+
 ### Add an entry
 
 ```sh
