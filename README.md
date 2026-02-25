@@ -2,7 +2,7 @@
 
 A minimalistic email address book with [aerc](https://aerc-mail.org/) integration.
 
-This is a Rust rewrite of [emailbook-hare](https://git.sr.ht/~maxgyver83/emailbook-hare).
+This is a Rust rewrite of [emailbook-hare](https://git.sr.ht/~maxgyver83/emailbook-hare). For the improvements and divergences, see the [Changes from the Hare version](#changes-from-the-hare-version) section.
 
 ## Installation <a href="https://repology.org/project/emailbook-rs/versions"><img src="https://repology.org/badge/vertical-allrepos/emailbook-rs.svg" alt="Packaging status" align="right"></a>
 
@@ -40,7 +40,7 @@ Options:
 
 ### Tips
 
-- You may want to alias `emailbook` to `eb` for brevity, and specify the `-f` flag to use a custom location (e.g., your cloud-synchronized folder).
+You may want to alias `emailbook` to `eb` for brevity, and specify the `-f` flag to use a custom location (e.g., your cloud-synchronized folder).
 
 ```sh
 alias eb='emailbook -f /path/to/sync-folder/emailbook.txt'
@@ -104,7 +104,7 @@ emailbook completion zsh  > ~/.zfunc/_emailbook
 ## aerc
 
 _emailbook_ might work for other e-mail clients but it was tested with
-[aerc](https://sr.ht/~rjarry/aerc/).
+[aerc](https://aerc-mail.org/).
 
 #### Use emailbook for autocompletion
 
